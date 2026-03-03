@@ -8,9 +8,11 @@ pub mod storage;
 pub mod embedding;
 pub mod search;
 pub mod utils;
+pub mod indexer;
 
 pub use memory::{Memory, MemoryCategory, MemoryEntry, SearchOptions, ListFilter};
 pub use storage::sqlite::SqliteBackend;
 pub use embedding::EmbeddingProvider;
+pub use indexer::{MarkdownIndexer, IndexStats};
 
 pub type Result<T> = anyhow::Result<T>;
