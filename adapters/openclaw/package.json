@@ -1,0 +1,37 @@
+{
+  "name": "@hipocampo/openclaw-adapter",
+  "version": "0.1.0",
+  "description": "Hipocampo adapter for OpenClaw",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --passWithNoTests",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "hipocampo",
+    "openclaw",
+    "memory",
+    "ai",
+    "agent"
+  ],
+  "author": "Lead Agent",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.0",
+    "ts-jest": "^29.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zer4tul/hipocampo.git",
+    "directory": "adapters/openclaw"
+  }
+}

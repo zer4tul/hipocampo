@@ -9,6 +9,7 @@ pub mod embedding;
 pub mod search;
 pub mod utils;
 pub mod indexer;
+pub mod adapters;
 
 pub use memory::{Memory, MemoryCategory, MemoryEntry, SearchOptions, ListFilter};
 pub use storage::sqlite::SqliteBackend;

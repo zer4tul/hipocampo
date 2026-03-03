@@ -1,0 +1,11 @@
+"use strict";
+/**
+ * Hipocampo OpenClaw Adapter
+ *
+ * Provides TypeScript API compatible with OpenClaw's MemorySearchManager
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HipocampoAdapter = void 0;
+var adapter_1 = require("./adapter");
+Object.defineProperty(exports, "HipocampoAdapter", { enumerable: true, get: function () { return adapter_1.HipocampoAdapter; } });
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiaW5kZXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvaW5kZXgudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IjtBQUFBOzs7O0dBSUc7OztBQUVILHFDQUE2QztBQUFwQywyR0FBQSxnQkFBZ0IsT0FBQSIsInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogSGlwb2NhbXBvIE9wZW5DbGF3IEFkYXB0ZXJcbiAqXG4gKiBQcm92aWRlcyBUeXBlU2NyaXB0IEFQSSBjb21wYXRpYmxlIHdpdGggT3BlbkNsYXcncyBNZW1vcnlTZWFyY2hNYW5hZ2VyXG4gKi9cblxuZXhwb3J0IHsgSGlwb2NhbXBvQWRhcHRlciB9IGZyb20gJy4vYWRhcHRlcic7XG5leHBvcnQgdHlwZSB7XG4gIE1lbW9yeUVudHJ5LFxuICBNZW1vcnlDYXRlZ29yeSxcbiAgU2VhcmNoT3B0aW9ucyxcbiAgTGlzdEZpbHRlcixcbiAgSW5kZXhTdGF0cyxcbiAgTWVtb3J5U2VhcmNoTWFuYWdlcixcbiAgSGlwb2NhbXBvQ29uZmlnLFxuICBFbWJlZGRpbmdDb25maWcsXG59IGZyb20gJy4vdHlwZXMnO1xuIl19
