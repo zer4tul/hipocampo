@@ -322,8 +322,8 @@ impl Memory for SqliteBackend {
     }
 
     async fn search(&self, query: &str, opts: SearchOptions) -> Result<Vec<MemoryEntry>> {
-        if !opts.hybrid {
-            // Keyword-only search
+        // If no embedding support or hybrid disabled, use keyword-only search
+        if !opts.hybrid || self.embedder.dimensions() == 0 {
             return self.search_fts(query, opts.limit, opts.session_id.as_deref()).await;
         }
 

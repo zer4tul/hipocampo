@@ -139,7 +139,7 @@ async fn search_command(
     let opts = SearchOptions {
         limit,
         session_id: session,
-        hybrid,
+        hybrid: false, // Disable hybrid search for keyword-only mode
         ..Default::default()
     };
 
