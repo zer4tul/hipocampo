@@ -144,42 +144,50 @@ impl SqliteBackend {
         };
 
         let query_blob = Self::vec_to_blob(query_embedding);
-
         let mut stmt = conn.prepare_cached(sql)?;
 
-        let rows = if let Some(sid) = session_id {
-            stmt.query_map(params![sid, query_blob, limit], |row| {
-                Ok(MemoryEntry {
-                    id: row.get(0)?,
-                    key: row.get(1)?,
-                    content: row.get(2)?,
-                    category: Self::parse_category(&row.get::<_, String>(3)?),
-                    timestamp: row.get(4)?,
-                    session_id: row.get(5)?,
-                    score: Some(Self::cosine_similarity(query_embedding, &Self::blob_to_vec(&row.get::<_, Vec<u8>>(6)?))),
-                    embedding: None,
-                })
-            })?
-        } else {
-            stmt.query_map(params![query_blob, limit], |row| {
-                Ok(MemoryEntry {
-                    id: row.get(0)?,
-                    key: row.get(1)?,
-                    content: row.get(2)?,
-                    category: Self::parse_category(&row.get::<_, String>(3)?),
-                    timestamp: row.get(4)?,
-                    session_id: row.get(5)?,
-                    score: Some(Self::cosine_similarity(query_embedding, &Self::blob_to_vec(&row.get::<_, Vec<u8>>(6)?))),
-                    embedding: None,
-                })
-            })?
+        let results = match session_id {
+            Some(sid) => {
+                let rows = stmt.query_map(params![sid, query_blob, limit], Self::map_vector_row(query_embedding))?;
+                Self::collect_rows(rows)?
+            }
+            None => {
+                let rows = stmt.query_map(params![query_blob, limit], Self::map_vector_row(query_embedding))?;
+                Self::collect_rows(rows)?
+            }
         };
 
+        Ok(results)
+    }
+
+    fn map_vector_row(query_embedding: &[f32]) -> impl Fn(&rusqlite::Row) -> rusqlite::Result<MemoryEntry> + '_ {
+        move |row| {
+            Ok(MemoryEntry {
+                id: row.get(0)?,
+                key: row.get(1)?,
+                content: row.get(2)?,
+                category: Self::parse_category(&row.get::<_, String>(3)?),
+                timestamp: row.get(4)?,
+                session_id: row.get(5)?,
+                score: Some(Self::cosine_similarity(query_embedding, &Self::blob_to_vec(&row.get::<_, Vec<u8>>(6)?))),
+                embedding: None,
+            })
+        }
+    }
+
+    fn collect_rows(rows: rusqlite::MappedRows<impl FnMut(&rusqlite::Row) -> rusqlite::Result<MemoryEntry>>) -> Result<Vec<MemoryEntry>> {
         let mut results = Vec::new();
         for row in rows {
             results.push(row?);
         }
+        Ok(results)
+    }
 
+    fn collect_rows_fts(rows: rusqlite::MappedRows<impl FnMut(&rusqlite::Row) -> rusqlite::Result<MemoryEntry>>) -> Result<Vec<MemoryEntry>> {
+        let mut results = Vec::new();
+        for row in rows {
+            results.push(row?);
+        }
         Ok(results)
     }
 
@@ -205,42 +213,34 @@ impl SqliteBackend {
 
         let mut stmt = conn.prepare_cached(sql)?;
 
-        let rows = if let Some(sid) = session_id {
-            stmt.query_map(params![&fts_query, sid, limit], |row| {
-                let rank: f64 = row.get(6)?;
-                Ok(MemoryEntry {
-                    id: row.get(0)?,
-                    key: row.get(1)?,
-                    content: row.get(2)?,
-                    category: Self::parse_category(&row.get::<_, String>(3)?),
-                    timestamp: row.get(4)?,
-                    session_id: row.get(5)?,
-                    score: Some(Self::bm25_rank_to_score(rank)),
-                    embedding: None,
-                })
-            })?
-        } else {
-            stmt.query_map(params![&fts_query, limit], |row| {
-                let rank: f64 = row.get(6)?;
-                Ok(MemoryEntry {
-                    id: row.get(0)?,
-                    key: row.get(1)?,
-                    content: row.get(2)?,
-                    category: Self::parse_category(&row.get::<_, String>(3)?),
-                    timestamp: row.get(4)?,
-                    session_id: row.get(5)?,
-                    score: Some(Self::bm25_rank_to_score(rank)),
-                    embedding: None,
-                })
-            })?
+        let results = match session_id {
+            Some(sid) => {
+                let rows = stmt.query_map(params![&fts_query, sid, limit], Self::map_fts_row())?;
+                Self::collect_rows_fts(rows)?
+            }
+            None => {
+                let rows = stmt.query_map(params![&fts_query, limit], Self::map_fts_row())?;
+                Self::collect_rows_fts(rows)?
+            }
         };
 
-        let mut results = Vec::new();
-        for row in rows {
-            results.push(row?);
-        }
-
         Ok(results)
+    }
+
+    fn map_fts_row() -> impl Fn(&rusqlite::Row) -> rusqlite::Result<MemoryEntry> {
+        |row| {
+            let rank: f64 = row.get(6)?;
+            Ok(MemoryEntry {
+                id: row.get(0)?,
+                key: row.get(1)?,
+                content: row.get(2)?,
+                category: Self::parse_category(&row.get::<_, String>(3)?),
+                timestamp: row.get(4)?,
+                session_id: row.get(5)?,
+                score: Some(Self::bm25_rank_to_score(rank)),
+                embedding: None,
+            })
+        }
     }
 
     fn build_fts_query(raw: &str) -> String {
@@ -324,11 +324,11 @@ impl Memory for SqliteBackend {
     async fn search(&self, query: &str, opts: SearchOptions) -> Result<Vec<MemoryEntry>> {
         if !opts.hybrid {
             // Keyword-only search
-            return self.search_fts(query, opts.limit.unwrap_or(10), opts.session_id.as_deref()).await;
+            return self.search_fts(query, opts.limit, opts.session_id.as_deref()).await;
         }
 
         // Hybrid search
-        let limit = opts.limit.unwrap_or(10);
+        let limit = opts.limit;
         let query_embedding = self.embedder.embed_one(query).await?;
 
         let (vector_results, keyword_results) = tokio::try_join!(

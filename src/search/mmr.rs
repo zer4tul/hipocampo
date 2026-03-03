@@ -34,12 +34,12 @@ pub fn apply_mmr(results: Vec<MemoryEntry>, config: &MMRConfig, top_k: usize) ->
             let relevance = candidate.score.unwrap_or(0.0);
 
             let diversity = if selected.is_empty() {
-                0.0
+                0.0_f64
             } else {
                 selected
                     .iter()
                     .map(|s| jaccard_similarity(&s.content, &candidate.content))
-                    .fold(0.0, |a, b| a.max(b))
+                    .fold(0.0_f64, |a: f64, b: f64| a.max(b))
             };
 
             let score = config.lambda as f64 * relevance - (1.0 - config.lambda) as f64 * diversity;
