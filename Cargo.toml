@@ -1,0 +1,54 @@
+[package]
+name = "hipocampo"
+version = "0.1.0"
+edition = "2021"
+authors = ["Lead Agent <lead@hipocampo.dev>"]
+description = "Agent-first unified memory backend for OpenClaw and ZeroClaw"
+license = "MIT"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.40", features = ["full"] }
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Storage
+rusqlite = { version = "0.32", features = ["bundled"] }
+
+# Embeddings
+reqwest = { version = "0.12", features = ["json"] }
+
+# Utilities
+uuid = { version = "1.10", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+sha2 = "0.10"
+hex = "0.4"
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# CLI (optional)
+clap = { version = "4.5", features = ["derive"], optional = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.12"
+
+[features]
+default = ["cli"]
+cli = ["clap"]
+
+[[bin]]
+name = "hipocampo"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[lib]
+name = "hipocampo"
+path = "src/lib.rs"
